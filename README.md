@@ -1,11 +1,7 @@
 # spherical-PDE-solver
 Numerical program to solve PDEs on a spherical surface by a spectral methods using spherical harmonics.
 
-
-
 https://github.com/user-attachments/assets/771b6360-3eda-46e1-8ebd-580be7bab89e
-
-
 
 ## The shallow water equations as an example
 
@@ -64,7 +60,7 @@ $$
 > where $\tilde P_l^m(x)$ is the orthonormalized associated Legendre polynomial. The vector spherical harmonics are defined using the gradient of scalar spherical harmonics (on a unit sphere):
 > 
 > $$
-> \Psi_l^m(\theta,\phi) = \nabla Y_l^m(\theta,\phi) \tag{curl-free vector}
+> \Psi_l^m(\theta,\phi) = R\nabla Y_l^m(\theta,\phi) \tag{curl-free vector}
 > $$
 >
 > $$

@@ -24,9 +24,11 @@ $$
 The spherical harmonics expansions yield
 
 $$
-h(\theta,\phi,t) = \sum_{l=0}^{l_\max}\sum_{m=-l}^l h_l^m(t) Y_l^m(\theta,\phi)
+h(\theta,\phi,t) = \sum_{l,m} h_l^m(t) Y_l^m(\theta,\phi)
 $$
 
 $$
-\mathbf v(\theta,\phi,t) = \sum_{l=0}^{l_\max}\sum_{m=-l}^l v_l^m(t) \pmb \Psi_l^m(\theta,\phi)
+\mathbf v(\theta,\phi,t) = \sum_{l,m} v_l^m(t) \pmb \Psi_l^m(\theta,\phi)
 $$
+
+The summation $\sum_{l,m}$ is an abbreviation of summing $l$ from $0$ to $l_\max$ and $m$ from $-l$ to $l$.

@@ -13,4 +13,4 @@ $$
 \frac{∂\mathbf v}{∂t} = -g\nabla h - b\mathbf v
 $$
 
-The solution fields: $h$ is the water height, $\mathbf v$ is the velocity field. The parameters: $H$ is the mean height, $g$ is the acceleration due to gravity, and $b$ is the rate of viscous dissipation.
+Solution fields: $h$ is the water height, $\mathbf v$ is the velocity field. Parameters: $H$ is the mean height, $g$ is the acceleration due to gravity, and $b$ is the rate of viscous dissipation.

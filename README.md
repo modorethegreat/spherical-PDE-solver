@@ -1,6 +1,8 @@
 # spherical-PDE-solver
 Numerical program to solve PDEs on a spherical surface by a spectral methods using spherical harmonics.
 
+https://github.com/user-attachments/assets/7e2edfef-69dc-49f8-b979-d54618c5b571
+
 ## The shallow water equations as an example
 
 The shallaw water equations are a special case of the Navier-Stokes equations, when the depth of water is much smaller than horizontal scales. The simplest linearized shallow water equations read

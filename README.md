@@ -31,4 +31,4 @@ $$
 \mathbf v(\theta,\phi,t) = \sum_{l,m} v_l^m(t) \pmb \Psi_l^m(\theta,\phi)
 $$
 
-The summation $\sum_{l,m}$ is an abbreviation of summing $l$ from $0$ to $l_\max$ and $m$ from $-l$ to $l$.
+The summation $\sum_{l,m}$ is an abbreviation of a double summation of $l$ from $0$ to $l_\max$ and $m$ from $-l$ to $l$.

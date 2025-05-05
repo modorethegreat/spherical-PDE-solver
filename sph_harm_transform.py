@@ -14,7 +14,7 @@ def squarize(array_1d):
     return matrix
 
 lmax = 100
-
+#naxo
 ls = np.arange(lmax + 1)
 cos_theta, weights = roots_legendre(180)
 theta = np.arccos(cos_theta)

@@ -36,6 +36,28 @@ The original forced example remains available with `python main.py` after instal
 
 https://github.com/user-attachments/assets/7e2edfef-69dc-49f8-b979-d54618c5b571
 
+## Rotating nonlinear benchmarks
+
+The rotating solver evolves layer depth, relative vorticity, and horizontal divergence. It reconstructs wind from a velocity potential and streamfunction, evaluates nonlinear products on a padded Gaussian grid, and advances the retained harmonics with fourth-order Runge–Kutta. The conserved depth mode is separate from the optional Laplacian diffusion of the other modes.
+
+```bash
+python rotating_benchmarks.py williamson2 --degree 10 --hours 120 --dt 600
+python rotating_benchmarks.py galewsky --degree 85 --hours 4 --dt 60 --fields galewsky-4h.npz
+python rotating_benchmarks.py galewsky --degree 85 --hours 144 --dt 360 --diffusion 100000 --fields galewsky-t85.npz
+```
+
+The commands print diagnostics as JSON. The optional NPZ contains latitude and longitude in radians plus the final depth, velocity, divergence, and relative vorticity, all in SI units. Fields are on the padded Gauss–Legendre grid. The solver omits topography, moisture, and external forcing.
+
+- **Williamson case 2.** The axis is tilted by 45° so the benchmark also exercises nonzonal modes. At T10 over five days the relative area-weighted height and wind errors were about `1.5e-15` and `1.2e-14`. This exact solution contains low-degree modes, so this check primarily exercises operator signs, orientation, and steady balance. [Williamson et al.](https://www.sciencedirect.com/science/article/pii/S0021999105800166)
+- **Galewsky adjustment, four hours.** Gaussian area quadrature and spectral Parseval both give a T85 divergence RMS of `2.07781e-7 s⁻¹`. An independent T85 torch-harmonics run with AB3 stepping at 30 s gives `2.07557e-7 s⁻¹` and differs from this solver by 0.19% in area-weighted relative divergence L2 on the common grid. This solver gives divergence extrema of `−2.14e-6` and `+3.76e-6 s⁻¹` and height extrema of 9052.25 and 10182.40 m, close to the published extrema. The source of the published divergence RMS of `4.0e-7 s⁻¹` remains unresolved. The table also reports a height RMS of 9778 m, below the 10,000 m unperturbed area mean. Equations (5)–(6) require the RMS to be at least the magnitude of the area mean, and the inviscid test adds a positive bump and conserves mass. [Galewsky et al., Table 1](https://www.columbia.edu/~lmp/paps/galewsky%2Betal-TELLUS-2004.pdf)
+- **Galewsky roll-up, six days.** With `ν = 100,000 m²/s` and a 360 s timestep, the relative vorticity-field differences from the T85 run fell from 25.8% at T42 to 8.8% at T63 on the common T85 grid. The T85 vorticity extrema were `−7.36e-5` and `+9.28e-5 s⁻¹`, close to the published `−7.3e-5` and `+9.3e-5 s⁻¹`. These are comparisons with published summary values and an internal refinement run. Independent pointwise agreement remains unverified. [Galewsky et al., Table 1](https://www.columbia.edu/~lmp/paps/galewsky%2Betal-TELLUS-2004.pdf) · [Corrected reference contours](https://www.columbia.edu/~lmp/paps/galewsky%2Betal-TELLUS-2004-CORRIGENDUM.pdf)
+
+To repeat the four-hour comparison, generate `galewsky-4h.npz` with the command above and run this validation script in a separate environment with the benchmark dependencies and `torch-harmonics==0.8.0`. It independently initializes the jet from the published equations and checks that the two divergence fields differ by at most 1% in area-weighted relative L2.
+
+```bash
+python validation/check_galewsky_torch.py galewsky-4h.npz
+```
+
 ## The shallow water equations as an example
 
 For a thin fluid layer linearized about rest and constant depth $H$ on a nonrotating sphere, the equations are

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Spherical wave benchmark</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./"><span class="orbit-mark" aria-hidden="true"></span>Spherical PDE Solver</a>
+    <a class="source" href="https://github.com/modorethegreat/spherical-PDE-solver">Source on GitHub ↗</a>
+  </header>
+  <main>
+    <div class="intro">
+      <div>
+        <h1>Spherical wave benchmark</h1>
+        <p>Compare one shallow-water harmonic at a time. Both globes show the same simulated instant and use the same height scale.</p>
+      </div>
+    </div>
+    <form class="configuration" id="settings">
+      <label>Degree <span aria-hidden="true">ℓ</span><select id="degree" name="degree"></select></label>
+      <label>Order <span aria-hidden="true">m</span><select id="order" name="order"></select></label>
+      <label>Linear drag <span aria-hidden="true">b</span><select name="drag">
+        <option value="0">0 · undamped</option><option value="0.5" selected>0.5</option><option value="1">1</option><option value="2">2</option><option value="4">4</option>
+      </select></label>
+      <label>Timesteps <span aria-hidden="true">N</span><select name="steps">
+        <option>20</option><option selected>40</option><option>80</option><option>160</option><option>320</option>
+      </select></label>
+      <button id="export" type="button" disabled>Export run <span aria-hidden="true">↓</span></button>
+    </form>
+    <p id="status" class="visually-hidden" role="status"></p>
+    <p id="error" class="error" role="alert" hidden></p>
+    <noscript><p>Enable JavaScript to explore the benchmark in your browser.</p></noscript>
+
+    <section class="comparison" aria-label="Height field comparison">
+      <div class="globes">
+        <article class="globe-card numerical">
+          <div class="card-header"><h2><i></i>Numerical</h2><p id="h-numerical">—</p></div>
+          <canvas id="numeric" tabindex="0" aria-label="Numerical height anomaly on a rotatable globe" aria-describedby="globe-hint">Numerical height field</canvas>
+        </article>
+        <article class="globe-card">
+          <div class="card-header"><h2><i></i>Exact</h2><p id="h-exact">—</p></div>
+          <canvas id="exact" tabindex="0" aria-label="Exact height anomaly on a rotatable globe" aria-describedby="globe-hint">Exact height field</canvas>
+        </article>
+      </div>
+      <div class="comparison-footer">
+        <div class="legend">
+          <p>Height anomaly <span>· model units</span></p>
+          <div class="color-ramp" aria-hidden="true"></div>
+          <div class="legend-labels"><span id="scale-min">—</span><span>0</span><span id="scale-max">—</span></div>
+        </div>
+        <div class="orientation">
+          <p id="globe-hint">Drag either globe or use its arrow keys to rotate both.</p>
+          <button id="reset" type="button">Reset view</button>
+        </div>
+      </div>
+      <div class="transport">
+        <button type="button" id="play" disabled>Play</button>
+        <div class="scrubber">
+          <label for="time">Simulated time <output id="elapsed" for="time">—</output></label>
+          <input id="time" type="range" min="0" max="40" step="1" value="0" disabled>
+        </div>
+        <div class="error-readout"><span>State error</span><strong id="state-error">—</strong></div>
+      </div>
+    </section>
+
+    <div class="analysis-grid">
+      <section class="diagnostic" aria-labelledby="plot-title">
+        <h2 id="plot-title">Height coefficient over time</h2>
+        <div class="plot-key"><span>Numerical</span><span>Exact</span></div>
+        <canvas id="plot" role="img" aria-label="Time history of the numerical and exact height coefficients"></canvas>
+      </section>
+      <section class="diagnostic" aria-labelledby="convergence-title">
+        <h2 id="convergence-title">Timestep convergence</h2>
+        <table>
+          <thead><tr><th scope="col">Steps</th><th scope="col">Δt</th><th scope="col">Final error</th><th scope="col">Order</th></tr></thead>
+          <tbody id="convergence"></tbody>
+        </table>
+        <p>The order should approach 1 as the timestep shrinks. The error combines height and velocity at <var>t</var> = 1.</p>
+      </section>
+    </div>
+  </main>
+  <footer>Linear, nonrotating shallow water <span>·</span> H = 2, g = 1, R = 1 in model units</footer>
+</body>
+</html>

@@ -1,4 +1,6 @@
-from sph_harm_transform import *
+from mode_benchmark import numerical_step
+from sph_harm_transform import ISHT, SHT, ls, phi, phi_mesh, theta_mesh
+import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from matplotlib import animation
@@ -12,33 +14,28 @@ dt = 0.001
 
 
 def simulation_step(h_lm, v_lm):
-    v_lm_new = (v_lm - dt * g/R * h_lm) / (np.ones((lmax+1, lmax+1)) + dt * b)
-    h_lm_new = h_lm + dt * H/R * (ls * (ls + 1))[:, None] * v_lm_new
-    return h_lm_new, v_lm_new
+    coupling = (H / R) * (ls * (ls + 1))[:, None]
+    return numerical_step(h_lm, v_lm, coupling, g / R, b, dt)
 
 
-h0 = np.ones(theta_mesh.shape) * H
-v0 = np.zeros((len(theta), len(phi), 2))
-h_lm0 = SHT(h0)
-v_lm0 = np.zeros(h_lm0.shape)
+def simulate():
+    h_lm = SHT(np.full(theta_mesh.shape, H, dtype=float))
+    v_lm = np.zeros_like(h_lm)
+    h_list = []
 
-h_list = []
-
-h_lm = h_lm0
-v_lm = v_lm0
-
-print('Solving PDEs...')
-
-for i in tqdm(range(10000)):
-    if i % 1500 == 0:
-        h = ISHT(h_lm)
-        h += np.exp(-((phi_mesh - np.random.uniform(0.3, np.pi*2 - 0.3))**2 + (theta_mesh - np.random.uniform(0.3, np.pi - 0.3))**2)/0.1**2/2)
-        h += np.exp(-((phi_mesh - np.random.uniform(0.3, np.pi*2 - 0.3))**2 + (theta_mesh - np.random.uniform(0.3, np.pi - 0.3))**2)/0.1**2/2)
-        # h += np.exp(-((phi_mesh - np.pi * 0.8)**2 + (theta_mesh - np.pi/2)**2)/0.1**2/2)
-        h_lm = SHT(h)
-    h_lm, v_lm = simulation_step(h_lm, v_lm)
-    if i % 20 == 0:
-        h_list.append(ISHT(h_lm))
+    print('Solving PDEs...')
+    for i in tqdm(range(10000)):
+        if i % 1500 == 0:
+            height = ISHT(h_lm)
+            for _ in range(2):
+                lon = np.random.uniform(0.3, 2 * np.pi - 0.3)
+                colat = np.random.uniform(0.3, np.pi - 0.3)
+                height += np.exp(-((phi_mesh - lon)**2 + (theta_mesh - colat)**2) / (2 * 0.1**2))
+            h_lm = SHT(height)
+        h_lm, v_lm = simulation_step(h_lm, v_lm)
+        if i % 20 == 0:
+            h_list.append(ISHT(h_lm))
+    return h_list
 
 
 def time_plot(h_list):
@@ -78,4 +75,5 @@ def time_plot(h_list):
     anim.save('./test.mp4', fps = 1/0.04, writer = 'ffmpeg', dpi = 200)
 
 
-time_plot(h_list)
+if __name__ == "__main__":
+    time_plot(simulate())

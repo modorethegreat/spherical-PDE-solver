@@ -103,6 +103,10 @@ class ShallowWater:
         east, north = self.sphere.wind(state[1], state[2])
         return depth, vorticity, divergence, east, north
 
+    def _forcing_tendency(self, depth, east, north):
+        """Optional spectral sources in depth, vorticity, divergence order."""
+        return 0.0
+
     def tendency(self, state):
         depth, vorticity, _, east, north = self.fields(state)
         if not np.isfinite(depth).all() or np.min(depth) <= 0:
@@ -113,7 +117,8 @@ class ShallowWater:
         north_fluxes = np.stack((depth * north, absolute * north, -absolute * east))
         continuity, curl_flux, momentum = self.sphere.divergence(east_fluxes, north_fluxes)
         energy_head = self.gravity * state[0] + self.sphere.analysis((east**2 + north**2) / 2)
-        return np.stack((-continuity, -curl_flux, momentum - self.sphere.laplacian * energy_head)) + state * self.decay
+        transport = np.stack((-continuity, -curl_flux, momentum - self.sphere.laplacian * energy_head))
+        return transport + state * self.decay + self._forcing_tendency(depth, east, north)
 
     def advance(self, state, dt):
         """Classical fourth-order Runge–Kutta with fixed positive timestep."""

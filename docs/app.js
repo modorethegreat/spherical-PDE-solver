@@ -1,5 +1,5 @@
 import { modeBenchmark } from './benchmark.js';
-import { mountGlobe } from './globe.js';
+import { bindOrbit, mountGlobe } from './globe.js';
 
 const byId = id => document.getElementById(id);
 const form = byId('settings');
@@ -11,8 +11,7 @@ const save = byId('export');
 const chart = byId('plot');
 const globes = [byId('numeric'), byId('exact')];
 const renderGlobes = globes.map(mountGlobe);
-const initialCamera = { yaw: -0.48, pitch: 0.23 };
-const camera = { ...initialCamera };
+const camera = { yaw: -0.48, pitch: 0.23 };
 
 let result;
 let index = 0;
@@ -20,7 +19,6 @@ let bound = 1;
 let coefficientBound = 1;
 let playFrame = 0;
 let renderFrame = 0;
-let pointer;
 const signed = value => (value < 0 ? '−' : '+') + Math.abs(value).toFixed(4);
 const scientific = value => value === 0 ? '0' : value.toExponential(3);
 
@@ -168,38 +166,7 @@ slider.addEventListener('input', () => {
   schedule();
 });
 
-function rotate(dx, dy) {
-  camera.yaw = (camera.yaw + dx) % (2 * Math.PI);
-  camera.pitch = Math.max(-1.5, Math.min(1.5, camera.pitch + dy));
-  schedule();
-}
-
-for (const canvas of globes) {
-  canvas.addEventListener('pointerdown', (event) => {
-    if (pointer || !event.isPrimary || event.button !== 0) return;
-    canvas.setPointerCapture(event.pointerId);
-    pointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
-  });
-  canvas.addEventListener('pointermove', event => {
-    if (pointer?.id !== event.pointerId) return;
-    rotate((event.clientX - pointer.x) * 0.009, (event.clientY - pointer.y) * 0.009);
-    pointer.x = event.clientX;
-    pointer.y = event.clientY;
-  });
-  for (const name of ['lostpointercapture', 'pointerup', 'pointercancel']) {
-    canvas.addEventListener(name, event => { if (pointer?.id === event.pointerId) pointer = undefined; });
-  }
-  canvas.addEventListener('keydown', event => {
-    const turns = { ArrowRight: [0.16, 0], ArrowLeft: [-0.16, 0], ArrowUp: [0, -0.16], ArrowDown: [0, 0.16] };
-    if (!Object.hasOwn(turns, event.key) || event.altKey || event.ctrlKey || event.metaKey) return;
-    event.preventDefault();
-    rotate(...turns[event.key]);
-  });
-}
-byId('reset').addEventListener('click', () => {
-  Object.assign(camera, initialCamera);
-  schedule();
-});
+bindOrbit(globes, byId('reset'), camera, schedule);
 save.addEventListener('click', () => {
   const link = document.createElement('a');
   const url = URL.createObjectURL(new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' }));

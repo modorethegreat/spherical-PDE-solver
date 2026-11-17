@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Explore nine simulations of circulation on a tidally locked planet.">
+  <title>Tidally locked circulation | Spherical PDE Solver</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="exoplanet.css">
+  <script type="module" src="exoplanet.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./"><span class="orbit-mark" aria-hidden="true"></span>Spherical PDE Solver</a>
+    <nav class="site-nav" aria-label="Project">
+      <a href="./">Wave benchmark</a>
+      <a href="exoplanet.html" aria-current="page">Exoplanet</a>
+      <a class="source" href="https://github.com/modorethegreat/spherical-PDE-solver">GitHub ↗</a>
+    </nav>
+  </header>
+  <main>
+    <div class="intro">
+      <h1>Tidally locked circulation</h1>
+      <p>Change how fast the atmosphere heats and how strongly winds slow down. Explore nine simulated atmospheres on a planet with a permanent dayside.</p>
+    </div>
+    <noscript><p>Enable JavaScript to rotate the globe and switch simulations.</p></noscript>
+    <p id="sweep-error" class="error" role="alert" hidden></p>
+    <div class="planet-layout">
+      <section class="globe-card planet-globe" aria-labelledby="field-title">
+        <div class="card-header">
+          <h2 id="field-title">Thickness anomaly</h2>
+          <button id="reset" type="button">Reset view</button>
+        </div>
+        <canvas id="planet" tabindex="0" aria-label="Rotatable globe of the selected exoplanet simulation" aria-describedby="orbit-hint">Exoplanet globe</canvas>
+        <div class="planet-caption">
+          <div class="legend">
+            <p id="legend-title">Thickness anomaly (m)</p>
+            <div class="color-ramp" aria-hidden="true"></div>
+            <div class="legend-labels"><span id="scale-min">—</span><span>0</span><span id="scale-max">—</span></div>
+          </div>
+          <div class="planet-hints">
+            <p><span class="sun-dot" aria-hidden="true"></span>Substellar point</p>
+            <p id="orbit-hint">Drag or use arrow keys to rotate.</p>
+          </div>
+        </div>
+      </section>
+      <div class="planet-panel">
+        <form id="settings" class="planet-settings">
+          <h2>Simulation</h2>
+          <fieldset id="case-controls" disabled>
+            <legend class="visually-hidden">Set timescales and visible field</legend>
+            <div class="timescale-grid">
+              <label for="radiative">Radiative time<select id="radiative"></select></label>
+              <label for="drag">Drag time<select id="drag"></select></label>
+            </div>
+            <p id="wave-unit">Times are in units of R/c, the time a gravity wave takes to travel one radius.</p>
+            <label for="field">Display field
+              <select id="field">
+                <option value="thickness_m">Thickness anomaly</option>
+                <option value="zonal_wind_m_s">Zonal wind</option>
+              </select>
+            </label>
+            <button type="button" id="control" aria-pressed="false">No-heating control</button>
+          </fieldset>
+        </form>
+        <section class="planet-readout" aria-labelledby="readout-title">
+          <h2 id="readout-title">Selected run</h2>
+          <p id="run-time">Loading simulated fields…</p>
+          <dl>
+            <div><dt>Equatorial zonal-mean wind</dt><dd id="equatorial-wind">—</dd></div>
+            <div><dt>Equatorial thickness offset</dt><dd id="phase-offset">—</dd></div>
+            <div><dt>Late-window drift</dt><dd id="drift">—</dd></div>
+          </dl>
+          <p id="drift-note">Largest sampled drift in wind or thickness anomaly over the final four wave times.</p>
+        </section>
+        <p id="status" class="visually-hidden" role="status"></p>
+      </div>
+    </div>
+    <section class="planet-method diagnostic" aria-labelledby="method-title">
+      <h2 id="method-title">About the model</h2>
+      <p>The globe shows final snapshots of an idealized shallow-water layer. Shorter radiative times restore the imposed dayside–nightside thickness contrast faster. Shorter drag times damp the winds faster. Each field uses a fixed color scale across the sweep.</p>
+      <p>The thickness offset tracks the phase of the first longitudinal harmonic at the equator. Thickness is a model quantity in metres. <a href="https://github.com/modorethegreat/spherical-PDE-solver#tidally-locked-exoplanet-experiment">Reproduce the experiment</a> · <a href="exoplanet-sweep.json" download>Download fields and diagnostics</a></p>
+    </section>
+  </main>
+  <footer>Forced rotating shallow water <span>·</span> Fields interpolated from the Gaussian grid</footer>
+</body>
+</html>

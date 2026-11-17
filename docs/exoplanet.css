@@ -1,0 +1,37 @@
+.planet-layout { display: grid; grid-template-columns: minmax(0, 1.74fr) minmax(17rem, 1fr); gap: .95rem; align-items: start; }
+.planet-globe { background: radial-gradient(ellipse at 50% 46%, #243751, #101b2b 54%, #0a121e 78%); }
+.planet-globe .card-header { min-height: 3.2rem; background: #111d2c; flex-direction: row; align-items: center; }
+.planet-globe canvas { height: clamp(19rem, 40vw, 32rem); touch-action: none; }
+.planet-globe button { min-height: 2rem; background: transparent; }
+.planet-caption { display: flex; justify-content: space-between; align-items: end; gap: .6rem 1rem; padding: .75rem .9rem; border-top: 1px solid var(--line); background: #111d2c; }
+.planet-hints { text-align: right; color: var(--quiet); font-size: .72rem; }
+.planet-hints p { margin: .2rem 0; }
+.sun-dot { display: inline-block; width: .52rem; height: .52rem; margin-right: .32rem; border-radius: 50%; background: #ffe0a0; }
+.planet-panel { display: grid; gap: .8rem; }
+.planet-settings, .planet-readout { border: 1px solid var(--line); background: var(--panel); padding: 1rem; }
+.planet-settings fieldset { min-width: 0; border: 0; margin: .8rem 0 0; padding: 0; }
+.timescale-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.planet-settings label, .planet-settings p, .planet-readout p { color: var(--quiet); font-size: .78rem; }
+.planet-settings p, .planet-readout p { margin: .65rem 0; line-height: 1.5; }
+.planet-settings button { display: block; width: 100%; margin-top: .78rem; background: transparent; }
+.planet-settings button[aria-pressed="true"] { color: #101c29; background: var(--cyan); }
+.planet-readout dl { display: grid; margin: .65rem 0 0; }
+.planet-readout dl div { padding: .55rem 0; border-top: 1px solid var(--line); }
+.planet-readout dt { font-size: .77rem; color: var(--quiet); }
+.planet-readout dd { margin: .23rem 0 0; color: var(--cyan); font: .98rem var(--mono); }
+.planet-readout dd[data-warning="true"] { color: var(--sand); }
+.planet-readout #drift-note { margin-bottom: 0; }
+.planet-method { margin-top: .95rem; }
+.planet-method p { max-width: 100ch; font-size: .8rem; line-height: 1.55; }
+.planet-method a { color: var(--cyan); }
+@media (max-width: 760px) {
+  .planet-layout { grid-template-columns: minmax(0, 1fr); }
+  .planet-panel { grid-row: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .planet-globe canvas { height: clamp(17rem, 74vw, 29rem); }
+}
+@media (max-width: 520px) {
+  .planet-panel { display: contents; }
+  .planet-settings { grid-row: 1; }
+  .planet-globe { grid-row: 2; }
+  .planet-readout { grid-row: 3; }
+}

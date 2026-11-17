@@ -46,7 +46,7 @@ python rotating_benchmarks.py galewsky --degree 85 --hours 4 --dt 60 --fields ga
 python rotating_benchmarks.py galewsky --degree 85 --hours 144 --dt 360 --diffusion 100000 --fields galewsky-t85.npz
 ```
 
-The commands print diagnostics as JSON. The optional NPZ contains latitude and longitude in radians plus the final depth, velocity, divergence, and relative vorticity, all in SI units. Fields are on the padded Gauss–Legendre grid. The solver omits topography, moisture, and external forcing.
+The commands print diagnostics as JSON. The optional NPZ contains latitude and longitude in radians plus the final depth, velocity, divergence, and relative vorticity, all in SI units. Fields are on the padded Gauss–Legendre grid. Both rotating benchmarks omit topography, moisture, and external forcing.
 
 - **Williamson case 2.** The axis is tilted by 45° so the benchmark also exercises nonzonal modes. At T10 over five days the relative area-weighted height and wind errors were about `1.5e-15` and `1.2e-14`. This exact solution contains low-degree modes, so this check primarily exercises operator signs, orientation, and steady balance. [Williamson et al.](https://www.sciencedirect.com/science/article/pii/S0021999105800166)
 - **Galewsky adjustment, four hours.** Gaussian area quadrature and spectral Parseval both give a T85 divergence RMS of `2.07781e-7 s⁻¹`. An independent T85 torch-harmonics run with AB3 stepping at 30 s gives `2.07557e-7 s⁻¹` and differs from this solver by 0.19% in area-weighted relative divergence L2 on the common grid. This solver gives divergence extrema of `−2.14e-6` and `+3.76e-6 s⁻¹` and height extrema of 9052.25 and 10182.40 m, close to the published extrema. The source of the published divergence RMS of `4.0e-7 s⁻¹` remains unresolved. The table also reports a height RMS of 9778 m, below the 10,000 m unperturbed area mean. Equations (5)–(6) require the RMS to be at least the magnitude of the area mean, and the inviscid test adds a positive bump and conserves mass. [Galewsky et al., Table 1](https://www.columbia.edu/~lmp/paps/galewsky%2Betal-TELLUS-2004.pdf)
@@ -57,6 +57,31 @@ To repeat the four-hour comparison, generate `galewsky-4h.npz` with the command 
 ```bash
 python validation/check_galewsky_torch.py galewsky-4h.npz
 ```
+
+## Tidally locked exoplanet experiment
+
+[Open the interactive exoplanet globe](https://modorethegreat.github.io/spherical-PDE-solver/exoplanet.html) to compare the nine timescale pairs and the no-heating control. Rotate the globe and switch between thickness anomaly and zonal wind.
+
+The same nonlinear solver can drive an idealized atmospheric layer with a permanent dayside at longitude 0°. The layer relaxes toward a prescribed thickness, $h_{\rm eq}=H(1+\epsilon\cos\phi\cos\lambda)$, where $\phi$ is latitude and $\lambda$ is east longitude. The mass source is $Q=(h_{\rm eq}-h)/\tau_{\rm rad}$. Momentum feels Rayleigh drag and dilution, $-\max(Q,0)\mathbf{v}/h$, when mass enters from a stationary deep layer. Layer thickness represents the dynamical response to the imposed heating. The model has no temperature field or radiative transfer. [Showman and Polvani, 2011, equations (9)–(11)](https://www.columbia.edu/~lmp/paps/showman%2Bpolvani-APJ-2011.pdf)
+
+```bash
+python exoplanet_experiment.py --refine --fields exoplanet-fields.npz --figure exoplanet-sweep.png > exoplanet-sweep.json
+```
+
+To regenerate the static viewer dataset and serve it locally:
+
+```bash
+python exoplanet_experiment.py --web-data docs/exoplanet-sweep.json
+python serve_viewer.py
+```
+
+Open `http://127.0.0.1:4210/exoplanet.html`. The globe displays precomputed T16 final snapshots and bilinearly interpolates the stored fields, which are rounded to 0.001 m and 0.001 m/s for the web. The readouts use the unrounded numerical diagnostics.
+
+The default run starts at rest on a sphere with radius 10,000 km, three-day rotation, and mean depth 1,000 m. It uses T16, fractional forcing amplitude 0.2, and Laplacian diffusion of $10^6$ m²/s. The nine cases combine radiative and drag times of 0.5, 2, and 8 in units of the wave time $R/\sqrt{gH}=100{,}000$ s. Each case ends at 32 wave times. The zero-heating run checks that uniform depth and rest persist. The representative case uses radiative and drag times of 0.5 and 8. With `--refine`, it runs again at half the timestep at T16, T24, and T32.
+
+The report includes the equatorial zonal-mean wind, its axial angular-momentum excess relative to planetary rotation, and the phase of the equatorial wavenumber-one thickness anomaly. Positive phase offsets are east of the substellar point. An asterisk on the figure marks cases that miss the late-window check or ran for fewer than four wave times. The check compares four samples with the final field and flags area-weighted drift above 2% in wind or thickness anomaly. This is a finite-time sensitivity experiment on an idealized sphere.
+
+In the default sweep, eight of nine forced cases pass the late-window check. The case with both timescales at $8R/c$ still has 2.63% wind drift. The representative zonal-mean equatorial wind is 6.31 m/s at T16, 6.62 m/s at T24, and 6.65 m/s at T32, with an equatorial thickness offset of 23.7° east at T32.
 
 ## The shallow water equations as an example
 

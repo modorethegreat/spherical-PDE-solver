@@ -21,6 +21,9 @@ button, select { font: inherit; }
 .brand { display: flex; gap: .65rem; align-items: center; font-weight: 620; }
 .source { color: var(--quiet); }
 .source:hover { color: var(--cyan); }
+.site-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .35rem 1.05rem; }
+.site-nav a { color: var(--quiet); text-decoration: none; font-size: .83rem; }
+.site-nav a:hover, .site-nav a[aria-current="page"] { color: var(--cyan); }
 .orbit-mark { position: relative; width: 1.15rem; aspect-ratio: 1; border: 1px solid var(--cyan); border-radius: 100%; }
 .orbit-mark::after { content: ""; position: absolute; inset: .31rem -.26rem; border: 1px solid var(--cyan); border-radius: 100%; transform: rotate(-28deg); }
 .intro { padding: clamp(1.75rem, 4.4vw, 3.7rem) 0 1.35rem; }
@@ -86,6 +89,8 @@ footer span { padding-inline: .3em; }
   .orientation { align-items: flex-end; flex-direction: column; text-align: right; }
 }
 @media (max-width: 480px) {
+  .site-header { flex-wrap: wrap; padding-block: .7rem; gap: .65rem 1rem; }
+  .site-nav { justify-content: flex-start; }
   .globes { gap: .4rem; }
   .card-header { flex-direction: column; align-items: flex-start; gap: .2rem; padding: .55rem; }
   .globe-card canvas { height: clamp(9rem, 42vw, 12rem); }

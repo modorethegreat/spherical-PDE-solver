@@ -44,16 +44,16 @@ export function mountFieldGlobe(canvas, maxPixels = Infinity) {
   let before;
   let beforeSample;
 
-  function prepare(yaw, pitch, evaluate) {
+  function prepare(yaw, pitch) {
     const u = canvas.clientWidth;
     const v = canvas.clientHeight;
     const ratio = Math.min(window.devicePixelRatio || 1, 1.5, maxPixels / Math.max(1, u, v));
     const width = Math.max(1, Math.round(u * ratio));
     const height = Math.max(1, Math.round(v * ratio));
     const key = [width, height, yaw, pitch].join(',');
-    if (key === before && evaluate === beforeSample) return;
+    if (key === before) return;
     before = key;
-    beforeSample = evaluate;
+    beforeSample = undefined;
     if (canvas.width !== width) canvas.width = width;
     if (canvas.height !== height) canvas.height = height;
     image = context.createImageData(width, height);
@@ -79,7 +79,7 @@ export function mountFieldGlobe(canvas, maxPixels = Infinity) {
         );
         geometry.push({
           offset: 4 * (row * width + col),
-          basis: evaluate(sinLat, lon, lat),
+          sinLat, lon, lat,
           light: 0.42 + 0.58 * Math.max(0, -0.4 * x + 0.41 * y + 0.82 * z),
           grid: Math.max(0, 1 - gridDistance * radius * 0.9),
           rim: (1 - z) ** 4,
@@ -91,7 +91,11 @@ export function mountFieldGlobe(canvas, maxPixels = Infinity) {
 
   return (sample, scale, camera, { coefficient = 1, marker } = {}) => {
     if (!context) return;
-    prepare(camera.yaw, camera.pitch, sample);
+    prepare(camera.yaw, camera.pitch);
+    if (sample !== beforeSample) {
+      for (const pixel of geometry) pixel.basis = sample(pixel.sinLat, pixel.lon, pixel.lat);
+      beforeSample = sample;
+    }
     for (const pixel of geometry) {
       const value = Math.max(-1, Math.min(1, coefficient * pixel.basis / scale));
       const endpoint = value < 0 ? colors.negative : colors.positive;

@@ -1,3 +1,4 @@
+import gzip
 import json
 from pathlib import Path
 import unittest
@@ -55,7 +56,7 @@ class ExoplanetTests(unittest.TestCase):
         dataset = Path(__file__).resolve().parents[1] / "docs" / "exoplanet-sweep.json"
         data = json.loads(dataset.read_text(encoding="utf-8"))
         cases = data["cases"]
-        self.assertEqual(data["schema"], 1)
+        self.assertEqual(data["schema"], 2)
         self.assertEqual([(row["tau_rad_wave"], row["tau_drag_wave"]) for row in cases],
                          [(rad, drag) for rad in TIMESCALES for drag in TIMESCALES])
         sphere = GaussSphere(data["degree"], RADIUS)
@@ -72,3 +73,33 @@ class ExoplanetTests(unittest.TestCase):
                     self.assertLessEqual(max(map(abs, values)), data["scales"][layer])
         for values in data["control_fields"].values():
             np.testing.assert_array_equal(values, np.zeros(np.prod(sphere.shape)))
+
+    def test_published_playback_starts_at_rest_and_matches_solver(self):
+        docs = Path(__file__).resolve().parents[1] / "docs"
+        data = json.loads((docs / "exoplanet-sweep.json").read_text(encoding="utf-8"))
+        timeline = data["playback"]
+        times = timeline["times_wave"]
+        self.assertEqual(len(times), 73)
+        self.assertEqual(times[0], 0)
+        self.assertEqual(times[-1], data["duration_wave"])
+        self.assertTrue(all(np.diff(times) > 0))
+        sphere = GaussSphere(data["degree"], RADIUS)
+        quantum = np.array(timeline["quantum"])[:, None, None]
+        for summary, maps, run in zip(data["cases"], data["fields"], timeline["runs"], strict=True):
+            with self.subTest(radiative=summary["tau_rad_wave"], drag=summary["tau_drag_wave"]):
+                raw = gzip.decompress((docs / run["file"]).read_bytes())
+                frames = np.frombuffer(raw, dtype="<i2").reshape(len(times), 2, *sphere.shape) * quantum
+                np.testing.assert_array_equal(frames[0], np.zeros_like(frames[0]))
+                self.assertEqual(run["equatorial_wind_m_s"][0], 0)
+                self.assertIsNone(run["thickness_offset_deg_east"][0])
+                for index, layer in enumerate(timeline["layers"]):
+                    self.assertLessEqual(np.max(np.abs(frames[:, index])), data["scales"][layer])
+                    limit = quantum[index, 0, 0] / 2
+                    np.testing.assert_allclose(frames[-1, index].ravel(), maps[layer], atol=limit + 0.0005, rtol=0)
+                frame = times.index(1.0)
+                expected, fields = run_case(sphere, summary["tau_rad_wave"], summary["tau_drag_wave"],
+                                            times[frame], data["max_dt_wave"], summary["forcing_amplitude"])
+                np.testing.assert_allclose(frames[frame, 0], fields["depth_m"] - MEAN_DEPTH, atol=0.005, rtol=0)
+                np.testing.assert_allclose(frames[frame, 1], fields["east_m_s"], atol=0.005, rtol=0)
+                self.assertAlmostEqual(run["equatorial_wind_m_s"][frame], expected["equatorial_zonal_wind_m_s"])
+                self.assertAlmostEqual(run["thickness_offset_deg_east"][frame], expected["equatorial_thickness_offset_deg_east"])

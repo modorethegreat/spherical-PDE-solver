@@ -33,6 +33,14 @@
           <button id="reset" type="button">Reset view</button>
         </div>
         <canvas id="planet" tabindex="0" aria-label="Rotatable globe of the selected exoplanet simulation" aria-describedby="orbit-hint">Exoplanet globe</canvas>
+        <div class="transport planet-transport">
+          <button id="play" type="button" disabled>Play</button>
+          <div class="scrubber">
+            <label for="time">Simulated time <span id="elapsed" aria-hidden="true">—</span></label>
+            <input id="time" type="range" min="0" max="1" step="1" value="1" disabled>
+            <p id="playback-status" role="status"></p>
+          </div>
+        </div>
         <div class="planet-caption">
           <div class="legend">
             <p id="legend-title">Thickness anomaly (m)</p>
@@ -70,7 +78,7 @@
           <dl>
             <div><dt>Equatorial zonal-mean wind</dt><dd id="equatorial-wind">—</dd></div>
             <div><dt>Equatorial thickness offset</dt><dd id="phase-offset">—</dd></div>
-            <div><dt>Late-window drift</dt><dd id="drift">—</dd></div>
+            <div><dt>End-of-run drift</dt><dd id="drift">—</dd></div>
           </dl>
           <p id="drift-note">Largest sampled drift in wind or thickness anomaly over the final four wave times.</p>
         </section>
@@ -79,8 +87,8 @@
     </div>
     <section class="planet-method diagnostic" aria-labelledby="method-title">
       <h2 id="method-title">About the model</h2>
-      <p>The globe shows final snapshots of an idealized shallow-water layer. Shorter radiative times restore the imposed dayside–nightside thickness contrast faster. Shorter drag times damp the winds faster. Each field uses a fixed color scale across the sweep.</p>
-      <p>The thickness offset tracks the phase of the first longitudinal harmonic at the equator. Thickness is a model quantity in metres. <a href="https://github.com/modorethegreat/spherical-PDE-solver#tidally-locked-exoplanet-experiment">Reproduce the experiment</a> · <a href="exoplanet-sweep.json" download>Download fields and diagnostics</a></p>
+      <p>The globe plays saved snapshots of an idealized shallow-water layer, with closer spacing at early times to show the initial adjustment. Shorter radiative times restore the imposed dayside–nightside thickness contrast faster. Shorter drag times damp the winds faster. Each field uses a fixed color scale across times and cases.</p>
+      <p>The thickness offset tracks the phase of the first longitudinal harmonic at the equator. Thickness is a model quantity in metres. <a href="https://github.com/modorethegreat/spherical-PDE-solver#tidally-locked-exoplanet-experiment">Reproduce the experiment</a> · <a href="exoplanet-sweep.json" download>Download final fields and timeline metadata</a></p>
     </section>
   </main>
   <footer>Forced rotating shallow water <span>·</span> Fields interpolated from the Gaussian grid</footer>

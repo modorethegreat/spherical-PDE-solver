@@ -60,7 +60,7 @@ python validation/check_galewsky_torch.py galewsky-4h.npz
 
 ## Tidally locked exoplanet experiment
 
-[Open the interactive exoplanet globe](https://modorethegreat.github.io/spherical-PDE-solver/exoplanet.html) to compare the nine timescale pairs and the no-heating control. Rotate the globe and switch between thickness anomaly and zonal wind.
+[Open the interactive exoplanet globe](https://modorethegreat.github.io/spherical-PDE-solver/exoplanet.html) to compare the nine timescale pairs and the no-heating control. Play or scrub through the run, rotate the globe, and switch between thickness anomaly and zonal wind at the selected time.
 
 The same nonlinear solver can drive an idealized atmospheric layer with a permanent dayside at longitude 0°. The layer relaxes toward a prescribed thickness, $h_{\rm eq}=H(1+\epsilon\cos\phi\cos\lambda)$, where $\phi$ is latitude and $\lambda$ is east longitude. The mass source is $Q=(h_{\rm eq}-h)/\tau_{\rm rad}$. Momentum feels Rayleigh drag and dilution, $-\max(Q,0)\mathbf{v}/h$, when mass enters from a stationary deep layer. Layer thickness represents the dynamical response to the imposed heating. The model has no temperature field or radiative transfer. [Showman and Polvani, 2011, equations (9)–(11)](https://www.columbia.edu/~lmp/paps/showman%2Bpolvani-APJ-2011.pdf)
 
@@ -75,7 +75,9 @@ python exoplanet_experiment.py --web-data docs/exoplanet-sweep.json
 python serve_viewer.py
 ```
 
-Open `http://127.0.0.1:4210/exoplanet.html`. The globe displays precomputed T16 final snapshots and bilinearly interpolates the stored fields, which are rounded to 0.001 m and 0.001 m/s for the web. The readouts use the unrounded numerical diagnostics.
+Open `http://127.0.0.1:4210/exoplanet.html`. The default playback uses 73 saved T16 states from 0 to 32 wave times, sampled every 0.25 wave times through time 4 and every 0.5 wave times after that. The slider selects a saved state and reports its simulated time. The viewer interpolates spatially on the Gaussian grid and keeps a fixed color scale for each field across cases and times.
+
+The JSON manifest includes the final fields and per-frame diagnostics. Each forced run has a separate gzip file containing signed little-endian 16-bit values ordered by frame, field, latitude, then longitude. The manifest gives a scale factor for each field, 0.01 m and 0.01 m/s in the default sweep. The final snapshots keep their original 0.001 m and 0.001 m/s precision. The readouts use unrounded diagnostics.
 
 The default run starts at rest on a sphere with radius 10,000 km, three-day rotation, and mean depth 1,000 m. It uses T16, fractional forcing amplitude 0.2, and Laplacian diffusion of $10^6$ m²/s. The nine cases combine radiative and drag times of 0.5, 2, and 8 in units of the wave time $R/\sqrt{gH}=100{,}000$ s. Each case ends at 32 wave times. The zero-heating run checks that uniform depth and rest persist. The representative case uses radiative and drag times of 0.5 and 8. With `--refine`, it runs again at half the timestep at T16, T24, and T32.
 

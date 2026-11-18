@@ -1,6 +1,7 @@
 """Sweep radiative relaxation and drag on an idealized tidally locked planet."""
 
 import argparse
+import gzip
 import json
 import math
 from pathlib import Path
@@ -68,7 +69,7 @@ def diagnostics(sphere, depth, east, north):
     }
 
 
-def run_case(sphere, tau_rad, tau_drag, duration, max_dt, amplitude):
+def run_case(sphere, tau_rad, tau_drag, duration, max_dt, amplitude, *, history=None):
     """Use units of R/c for all time arguments and return SI fields."""
     if not all(math.isfinite(value) and value > 0 for value in (duration, max_dt)):
         raise ValueError("Duration and timestep must be finite and positive.")
@@ -91,11 +92,21 @@ def run_case(sphere, tau_rad, tau_drag, duration, max_dt, amplitude):
     checkpoints = set()
     if duration >= 4:
         checkpoints = {round(steps * (duration - offset) / duration) for offset in range(1, 5)}
+    frame_steps = set()
+    if history is not None:
+        # Sample the initial adjustment more densely than the rest of the run.
+        frame_steps = set(np.rint(np.r_[np.linspace(0, steps, 65), np.linspace(0, steps / 8, 17)]).astype(int))
     snapshots = []
     for index in range(steps + 1):
-        if index in checkpoints:
+        if index in checkpoints or index in frame_steps:
             depth, _, _, east, north = model.fields(state)
-            snapshots.append((depth, east, north))
+            if index in checkpoints:
+                snapshots.append((depth, east, north))
+            if index in frame_steps:
+                info = diagnostics(sphere, depth, east, north)
+                history.append((index * dt / WAVE_TIME, depth - MEAN_DEPTH, east,
+                                info["equatorial_zonal_wind_m_s"],
+                                info["equatorial_thickness_offset_deg_east"]))
         if index < steps:
             state = model.advance(state, dt)
 
@@ -129,12 +140,15 @@ def sweep(degree, duration, max_dt, amplitude, refine=False, web_data=None):
         raise ValueError("Use T112 or lower when refining by 16 degrees.")
     cases = []
     grids = []
+    histories = []
     for tau_rad in TIMESCALES:
         for tau_drag in TIMESCALES:
-            summary, fields = run_case(sphere, tau_rad, tau_drag, duration, max_dt, amplitude)
+            history = [] if web_data is not None else None
+            summary, fields = run_case(sphere, tau_rad, tau_drag, duration, max_dt, amplitude, history=history)
             cases.append(summary)
             if web_data is not None:
                 grids.append(viewer_grid(fields))
+                histories.append(history)
             if (tau_rad, tau_drag) == REPRESENTATIVE:
                 representative_fields = fields
     control, control_fields = run_case(sphere, *REPRESENTATIVE, duration, max_dt, 0.0)
@@ -155,7 +169,7 @@ def sweep(degree, duration, max_dt, amplitude, refine=False, web_data=None):
         report["representative_refinement"] = comparisons
     if web_data is not None:
         grids.append(viewer_grid(control_fields))
-        save_web_data(report, sphere, grids, web_data)
+        save_web_data(report, sphere, grids, histories, web_data)
     return report, representative_fields
 
 
@@ -166,19 +180,35 @@ def viewer_grid(fields):
     }
 
 
-def save_web_data(report, sphere, grids, path):
-    """Export rounded latitude-major fields with a common scale for each layer."""
+def save_web_data(report, sphere, grids, histories, path):
+    """Export the end states and independently loadable playback for each pair."""
+    layers = ("thickness_m", "zonal_wind_m_s")
     scales = {
-        name: max(1, math.ceil(max(abs(value) for grid in grids for value in grid[name])))
-        for name in grids[0]
+        name: max(1, math.ceil(max(np.max(np.abs(frame[layer])) for history in histories for frame in history)))
+        for layer, name in enumerate(layers, start=1)
     }
+    quantum = [max(0.01, math.ceil(scale / 32767 * 100) / 100) for scale in scales.values()]
+    directory = path.parent / (path.stem + "-frames")
+    directory.mkdir(exist_ok=True)
+    runs = []
+    for index, history in enumerate(histories):
+        # Frame-major storage, with one latitude-major int16 plane per field.
+        planes = np.array([(frame[1], frame[2]) for frame in history])
+        packed = np.rint(planes / np.array(quantum)[None, :, None, None]).astype("<i2")
+        frame_path = directory / f"{index}.bin.gz"
+        frame_path.write_bytes(gzip.compress(packed.tobytes(), mtime=0))
+        runs.append({"file": f"{directory.name}/{frame_path.name}",
+                     "equatorial_wind_m_s": [frame[3] for frame in history],
+                     "thickness_offset_deg_east": [frame[4] for frame in history]})
     data = {
-        "schema": 1,
+        "schema": 2,
         **report,
         "grid": {"latitude_deg": np.rad2deg(sphere.lat).tolist(), "longitude_count": sphere.nlon},
         "scales": scales,
         "fields": grids[:-1],
         "control_fields": grids[-1],
+        "playback": {"times_wave": [frame[0] for frame in histories[0]],
+                     "layers": list(layers), "quantum": quantum, "runs": runs},
     }
     path.write_text(json.dumps(data, separators=(",", ":"), allow_nan=False) + "\n", encoding="utf-8")
 

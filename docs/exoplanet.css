@@ -3,6 +3,12 @@
 .planet-globe .card-header { min-height: 3.2rem; background: #111d2c; flex-direction: row; align-items: center; }
 .planet-globe canvas { height: clamp(19rem, 40vw, 32rem); touch-action: none; }
 .planet-globe button { min-height: 2rem; background: transparent; }
+.planet-transport { border-width: 1px 0 0; flex-wrap: nowrap; }
+.planet-transport button { background: var(--cyan); }
+.planet-transport .scrubber { flex: 1; }
+#elapsed { font: .74rem var(--mono); text-align: right; }
+#playback-status { margin: .3rem 0 0; color: var(--quiet); font-size: .72rem; }
+#playback-status:empty { display: none; }
 .planet-caption { display: flex; justify-content: space-between; align-items: end; gap: .6rem 1rem; padding: .75rem .9rem; border-top: 1px solid var(--line); background: #111d2c; }
 .planet-hints { text-align: right; color: var(--quiet); font-size: .72rem; }
 .planet-hints p { margin: .2rem 0; }
